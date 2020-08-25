@@ -99,6 +99,7 @@ def get_train_instances(train, num_negatives):
         # negative instances
         for t in xrange(num_negatives):
             j = np.random.randint(num_items)
+            # train datatype = sp.dok_matrix. Method "has_key()" does not exist in current scipy
             while train.has_key((u, j)):
                 j = np.random.randint(num_items)
             user_input.append(u)
