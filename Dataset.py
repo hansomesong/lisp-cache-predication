@@ -51,18 +51,44 @@ class Dataset(object):
         '''
         Read .rating file and Return dok matrix.
         The first line of .rating file is: num_users\t num_items
+
+        2020-08-27, by Qipeng:
+        When revisiting the initial implementation, the determination of num_users and num_items is not correct.
+        It's very possible that for some dateset, the user/item ID in test dataset is greater than the maximum in
+        training dataset. One possible solution is to record number of users and items at the beginning of training
+        dataset.
         '''
         # Get number of users and items
         num_users, num_items = 0, 0
         with open(filename, "r") as f:
             line = f.readline()
-            while line != None and line != "":
-                arr = line.split("\t")
-                u, i = int(arr[0]), int(arr[1])
-                num_users = max(num_users, u)
-                num_items = max(num_items, i)
+            if line.startswith("#"):
+                num_users, num_items = int(line.split("\t")[0][1:]), int(line.split("\t")[1])
+                mat = sp.dok_matrix((num_users, num_items), dtype=np.float32)
                 line = f.readline()
+                while line != None and line != "":
+                    arr = line.split("\t")
+                    user, item, rating = int(arr[0]), int(arr[1]), float(arr[2])
+                    if (rating > 0):
+                        mat[user, item] = 1.0
+                    line = f.readline()
+                return mat
+
+            else:
+                # if num_users and num_items are not recorded at the very beginning, it's necessary to iterate dataset
+                # to determine these two variables.
+                while line != None and line != "":
+                    arr = line.split("\t")
+                    u, i = int(arr[0]), int(arr[1])
+                    num_users = max(num_users, u)
+                    num_items = max(num_items, i)
+                    line = f.readline()
+
+                # with
         # Construct matrix
+        # Qipeng: why do we need sp.dok_matrix here? dict is not efficient?
+        # num_users, num_items = 23561, 23600
+        # num_users, num_items = 56698, 56712
         mat = sp.dok_matrix((num_users+1, num_items+1), dtype=np.float32)
         with open(filename, "r") as f:
             line = f.readline()
