@@ -59,11 +59,13 @@ def eval_one_rating(idx):
     # Get prediction scores
     map_item_score = {}
     users = np.full(len(items), u, dtype = 'int32')
+    # Qipeng: what's the difference between `batch_size` here and `batch_size` given in program's arguments list?
     predictions = _model.predict([users, np.array(items)], 
                                  batch_size=100, verbose=0)
     for i in xrange(len(items)):
         item = items[i]
         map_item_score[item] = predictions[i]
+    # Qipeng: to remove the last-visited item...
     items.pop()
     
     # Evaluate top rank list

@@ -183,6 +183,8 @@ def main():
                       help='Path to the dataset')
   parser.add_argument('--epochs', type=int, default=128,
                       help='Number of training epochs')
+
+  ##todo: the first dimension will be used for the bias???##
   parser.add_argument('--embedding_dim', type=int, default=8,
                       help='Embedding dimensions, the first dimension will be '
                            'used for the bias.')

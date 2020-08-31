@@ -42,6 +42,7 @@ class Dataset(object):
                 arr = line.split("\t")
                 negatives = []
                 for x in arr[1: ]:
+                    # thus negatives does not contains the last-visited item...
                     negatives.append(int(x))
                 negativeList.append(negatives)
                 line = f.readline()
