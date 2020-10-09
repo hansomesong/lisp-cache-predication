@@ -269,7 +269,7 @@ class DatasetParser(object):
 
 if __name__ == "__main__":
     dataset_name = "auckland-8"
-    data_set_path = "/Users/qsong/Downloads/20-1min.pcap"
+    data_set_path = "/Users/qsong/Downloads/30-1min.pcap"
     parser = DatasetParser(dataset_name, data_set_path, auto=True, read_pcap_db=None)
     # parser = DatasetParser(dataset_name, data_set_path, auto=True, read_pcap_db="auckland-8-15-1min.db")
 
