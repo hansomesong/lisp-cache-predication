@@ -6,6 +6,7 @@ He Xiangnan et al. Neural Collaborative Filtering. In WWW 2017.
 @author: Xiangnan He (xiangnanhe@gmail.com)
 '''
 import numpy as np
+import pandas as pd
 
 import theano
 import theano.tensor as T
@@ -100,6 +101,7 @@ def get_model(num_users, num_items, mf_dim=10, layers=[10], reg_layers=[0], reg_
     
     # Final prediction layer
     prediction = Dense(1, activation='sigmoid', init='lecun_uniform', name = "prediction")(predict_vector)
+    print("prediction: ", prediction)
     
     model = Model(input=[user_input, item_input], 
                   output=prediction)
@@ -220,7 +222,9 @@ if __name__ == '__main__':
         
         # Evaluation
         if epoch %verbose == 0:
-            (hits, ndcgs) = evaluate_model(model, testRatings, testNegatives, topK, evaluation_threads)
+            (hits, ndcgs, predictions) = evaluate_model(model, testRatings, testNegatives, topK, evaluation_threads)
+            output = pd.DataFrame(columns=['predicttion_ip'], data=predictions)
+            output.to_csv('output.csv')
             hr, ndcg, loss = np.array(hits).mean(), np.array(ndcgs).mean(), hist.history['loss'][0]
             print('Iteration %d [%.1f s]: HR = %.4f, NDCG = %.4f, loss = %.4f [%.1f s]' 
                   % (epoch,  t2-t1, hr, ndcg, loss, time()-t2))
@@ -232,3 +236,4 @@ if __name__ == '__main__':
     print("End. Best Iteration %d:  HR = %.4f, NDCG = %.4f. " %(best_iter, best_hr, best_ndcg))
     if args.out > 0:
         print("The best NeuMF model is saved to %s" %(model_out_file))
+

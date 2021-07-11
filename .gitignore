@@ -2,5 +2,5 @@
 .DS_Store
 .idea/
 Pretrain/*
-
+Data_Raw/*
 *.ipynb
