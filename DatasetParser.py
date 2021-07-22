@@ -1,3 +1,4 @@
+# Run this program with python 2.7, since it uses python 2.7 specific syntax such as unicode(), xrange.
 from scapy.all import *
 import ipaddress
 import scipy.sparse as sp
@@ -8,6 +9,7 @@ from functools import wraps
 import shelve
 
 import time
+import platform
 
 def time_profiling(my_func):
     """
@@ -268,10 +270,20 @@ class DatasetParser(object):
 
 
 if __name__ == "__main__":
+    SYSTEM=platform.system()
+    DATASET_ROOT = ""
+    if SYSTEM.startswith('Darwin'):
+        DATASET_ROOT = "XX"
+    elif SYSTEM.startswith("Linux"):
+        DATASET_ROOT = "/home/qsong/Documents/xidian/NCF/lisp-cache-predication/Data_Raw/auckland-8/20mins-traces"
+
     dataset_name = "auckland-8"
-    data_set_path = "/Users/qsong/Downloads/30-1min.pcap"
+    raw_data_file_name = "20-9mins.pcap"
+    data_set_path = os.path.join(DATASET_ROOT, raw_data_file_name)
+    # data_set_path in remote ubuntu server
+    # data_set_path = "/home/qsong/Documents/xidian/NCF/lisp-cache-predication/Data_Raw/auckland-8/20mins-traces/20-2min.pcap"
     parser = DatasetParser(dataset_name, data_set_path, auto=True, read_pcap_db=None)
-    # parser = DatasetParser(dataset_name, data_set_path, auto=True, read_pcap_db="auckland-8-15-1min.db")
+    # parser = DatasetParser(dataset_name, data_set_path, auto=True, read_pcap_db="auckland-8-15-1mins.db")
 
     # print(parser.get_network_addr("10.0.4.125"))
 

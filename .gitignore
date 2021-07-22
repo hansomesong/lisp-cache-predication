@@ -4,3 +4,4 @@
 Pretrain/*
 Data_Raw/*
 *.ipynb
+venv/
