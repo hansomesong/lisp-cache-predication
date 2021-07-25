@@ -1,3 +1,4 @@
+# coding=utf-8
 '''
 Created on Aug 9, 2016
 Keras Implementation of Neural Matrix Factorization (NeuMF) recommender model in:
@@ -7,6 +8,7 @@ He Xiangnan et al. Neural Collaborative Filtering. In WWW 2017.
 '''
 import numpy as np
 import pandas as pd
+import os
 
 import theano
 import theano.tensor as T
@@ -201,7 +203,7 @@ if __name__ == '__main__':
         print("Load pretrained GMF (%s) and MLP (%s) models done. " %(mf_pretrain, mlp_pretrain))
         
     # Init performance
-    (hits, ndcgs) = evaluate_model(model, testRatings, testNegatives, topK, evaluation_threads)
+    (hits, ndcgs, predictions) = evaluate_model(model, testRatings, testNegatives, topK, evaluation_threads)
     hr, ndcg = np.array(hits).mean(), np.array(ndcgs).mean()
     print('Init: HR = %.4f, NDCG = %.4f' % (hr, ndcg))
     best_hr, best_ndcg, best_iter = hr, ndcg, -1
@@ -222,18 +224,27 @@ if __name__ == '__main__':
         
         # Evaluation
         if epoch %verbose == 0:
-            (hits, ndcgs, predictions) = evaluate_model(model, testRatings, testNegatives, topK, evaluation_threads)
-            output = pd.DataFrame(columns=['predicttion_ip'], data=predictions)
-            output.to_csv('output.csv')
+            (hits, ndcgs, ranklists) = evaluate_model(model, testRatings, testNegatives, topK, evaluation_threads)
+            # output = pd.DataFrame(predictions)
+            # # output.to_csv('output.csv')
             hr, ndcg, loss = np.array(hits).mean(), np.array(ndcgs).mean(), hist.history['loss'][0]
             print('Iteration %d [%.1f s]: HR = %.4f, NDCG = %.4f, loss = %.4f [%.1f s]' 
                   % (epoch,  t2-t1, hr, ndcg, loss, time()-t2))
             if hr > best_hr:
                 best_hr, best_ndcg, best_iter = hr, ndcg, epoch
+                best_ranklists = ranklists
+                # with open(predicted_f, 'w') as f:
+                #     f.write()
                 if args.out > 0:
                     model.save_weights(model_out_file, overwrite=True)
 
     print("End. Best Iteration %d:  HR = %.4f, NDCG = %.4f. " %(best_iter, best_hr, best_ndcg))
+    # 将预测的item, 写入文件以便持久化
+    # print("Top K predicated items:", best_ranklists)
+    # predicted_f = os.path.join(args.path, "{1}.predict".format(args.dataset))
+    predicted_f = "test.csv"
+    tmp = pd.DataFrame.from_dict(best_ranklists)
+    tmp.to_csv(predicted_f)
     if args.out > 0:
         print("The best NeuMF model is saved to %s" %(model_out_file))
 

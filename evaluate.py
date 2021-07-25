@@ -34,7 +34,9 @@ def evaluate_model(model, testRatings, testNegatives, K, num_thread):
     _testNegatives = testNegatives
     _K = K
         
-    hits, ndcgs ,predictions= [],[],[]#predictions 空列表 存储每个预测值
+    hits, ndcgs = [],[]
+    # ranklists 字典类型，key为user_id, value为列表，列表中元素为K个最有可能被访问的K的item
+    ranklists = {}
     if(num_thread > 1): # Multi-thread
         pool = multiprocessing.Pool(processes=num_thread)
         res = pool.map(eval_one_rating, range(len(_testRatings)))
@@ -43,42 +45,56 @@ def evaluate_model(model, testRatings, testNegatives, K, num_thread):
         pool.join()
         hits = [r[0] for r in res]
         ndcgs = [r[1] for r in res]
-        predictions = [r[2] for r in res]
-        return (hits, ndcgs, predictions)
+        ranklists = [r[2] for r in res]
+        return (hits, ndcgs, ranklists)
     # Single thread
     for idx in xrange(len(_testRatings)):
-        (hr,ndcg,prediction) = eval_one_rating(idx)#prediciton 每个预测值
+        (hr, ndcg, ranklist) = eval_one_rating(idx) #prediciton 每个预测值
         hits.append(hr)
         ndcgs.append(ndcg)
-        predictions.append(prediction)
-    return (hits, ndcgs,predictions)
+        # ranklists.append(ranklist)
+        ranklists[_testRatings[idx][0]] = ranklist
+    return (hits, ndcgs, ranklists)
 
 def eval_one_rating(idx):
+    """
+    该函数对某一个给定的user(这里面用idx, 即索引号，也可以简单理解成数据文件的行号，来指代)进行评估。
+    """
     rating = _testRatings[idx]
     items = _testNegatives[idx]
     u = rating[0]
+    # gtItem 是 user 最后一次访问过的item
     gtItem = rating[1]
+    # items 其实就是最后一次访问的item, 加上另外99个未被访问过的item
     items.append(gtItem)
     # Get prediction scores
     map_item_score = {}
     users = np.full(len(items), u, dtype = 'int32')
     # Qipeng: what's the difference between `batch_size` here and `batch_size` given in program's arguments list?
+    # predictions 内容似乎是一堆概率值
     predictions = _model.predict([users, np.array(items)], 
                                  batch_size=100, verbose=0)#每一批次的预测值
-    print(predictions)
+
+    # 给items中的每一项，预测一下每一项item的被访问的概率，共99项, predictions应该是更长？
     for i in xrange(len(items)):
         item = items[i]
         map_item_score[item] = predictions[i]
-    # Qipeng: to remove the last-visited item...
+
+    # Qipeng: to remove the last-visited item... 为啥要这么做？
     items.pop()
     
     # Evaluate top rank list
+    # ranklist中存储的即是依概率高低挑出来的K个有可能被访问的item
     ranklist = heapq.nlargest(_K, map_item_score, key=map_item_score.get)
     hr = getHitRatio(ranklist, gtItem)
     ndcg = getNDCG(ranklist, gtItem)
-    return (hr, ndcg,predictions)
+    return (hr, ndcg, ranklist)
 
 def getHitRatio(ranklist, gtItem):
+    """
+    其实这个函数就是简单地判断下getItem在不在ranklist中，也即是判断通过模型预测而来的K个最有可能被访问的items中是否含有实际上真的被
+    访问过的gtItem
+    """
     for item in ranklist:
         if item == gtItem:
             return 1

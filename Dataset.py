@@ -3,9 +3,13 @@ Created on Aug 8, 2016
 Processing datasets. 
 
 @author: Xiangnan He (xiangnanhe@gmail.com)
+
+# 2021-07-25 Qipeng add some updates
+add a method to parse data file into a pandas DataFrame object
 '''
 import scipy.sparse as sp
 import numpy as np
+import pandas as pd
 
 class Dataset(object):
     '''
@@ -17,6 +21,9 @@ class Dataset(object):
         Constructor
         '''
         self.trainMatrix = self.load_rating_file_as_matrix(path + ".train.rating")
+        # Qipeng: convert sparse matrix `self.trainMatrix` to a pandas DataFrame object for LISP-specific evaluation
+        # unfortunately, pandas 0.23.1 has no support for this feature.
+        # self.trainDataFrame = pd.DataFrame.sparse.from_spmatrix(self.trainMatrix)
         self.testRatings = self.load_rating_file_as_list(path + ".test.rating")
         self.testNegatives = self.load_negative_file(path + ".test.negative")
         assert len(self.testRatings) == len(self.testNegatives)
@@ -88,6 +95,7 @@ class Dataset(object):
                 # with
         # Construct matrix
         # Qipeng: why do we need sp.dok_matrix here? dict is not efficient?
+        # dok_matrix is an efficient structure for constructing sparse matrices incrementally.
         # num_users, num_items = 23561, 23600
         # num_users, num_items = 56698, 56712
         mat = sp.dok_matrix((num_users+1, num_items+1), dtype=np.float32)
@@ -100,6 +108,17 @@ class Dataset(object):
                     mat[user, item] = 1.0
                 line = f.readline()    
         return mat
+
+
+    # def load_rating_file_as_pdframe(self, filename):
+    #     '''
+    #     Read .rating file and Return a pandas DataFrame object
+    #     The first line of .rating file is: num_users\t num_items
+    #
+    #     Pandas provide API for creating DataFrame object from scipy's sparse matrix
+    #     '''
+    #     mat = self.load_rating_file_as_matrix()
+    #     return pd.DataFrame.sparse.from_spmatrix(mat)
 
 
 if __name__ == "__main__":
