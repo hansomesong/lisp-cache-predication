@@ -155,6 +155,7 @@ def get_train_instances(train, num_negatives):
     return user_input, item_input, labels
 
 if __name__ == '__main__':
+    t0 = time()
     args = parse_args()
     num_epochs = args.epochs
     batch_size = args.batch_size
@@ -170,7 +171,7 @@ if __name__ == '__main__':
     mlp_pretrain = args.mlp_pretrain
             
     topK = 10
-    evaluation_threads = 1#mp.cpu_count()
+    evaluation_threads = 1 #mp.cpu_count()
     print("NeuMF arguments: %s " %(args))
     model_out_file = 'Pretrain/%s_NeuMF_%d_%s_%d.h5' %(args.dataset, mf_dim, args.layers, time())
 
@@ -242,9 +243,11 @@ if __name__ == '__main__':
     # 将预测的item, 写入文件以便持久化
     # print("Top K predicated items:", best_ranklists)
     # predicted_f = os.path.join(args.path, "{1}.predict".format(args.dataset))
-    predicted_f = "test.csv"
+    predicted_f = os.path.join("Predication", args.dataset+".predict.csv")
     tmp = pd.DataFrame.from_dict(best_ranklists)
     tmp.to_csv(predicted_f)
     if args.out > 0:
         print("The best NeuMF model is saved to %s" %(model_out_file))
+    t4 = time()
+    print("The total elapsed time: {}".format(t4-t0))
 

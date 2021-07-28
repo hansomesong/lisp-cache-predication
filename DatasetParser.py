@@ -1,4 +1,6 @@
-# Run this program with python 2.7, since it uses python 2.7 specific syntax such as unicode(), xrange.
+"""
+Run this program with python 2.7, since it uses python 2.7 specific syntax such as unicode(), xrange.
+"""
 from scapy.all import *
 import ipaddress
 import scipy.sparse as sp
@@ -10,6 +12,7 @@ import shelve
 
 import time
 import platform
+import sys
 
 def time_profiling(my_func):
     """
@@ -20,7 +23,7 @@ def time_profiling(my_func):
         tstart = time.time()
         output = my_func(*args, **kw)
         tend = time.time()
-        print('"{}" took {:.3f} ms to execute\n'.format(my_func.__name__, (tend - tstart) * 1000))
+        print('"{}" took {:.3f} s to execute\n'.format(my_func.__name__, (tend - tstart)))
         return output
     return timed
 
@@ -271,21 +274,26 @@ class DatasetParser(object):
 
 if __name__ == "__main__":
     SYSTEM=platform.system()
-    DATASET_ROOT = ""
+    DATASET_NAME = "auckland-8"
+    SUB_DATASET = "6mins-traces" # numerical value refers to the duration of PCAP file
+    RAWDATA_ROOT = ""
+
     if SYSTEM.startswith('Darwin'):
-        DATASET_ROOT = "XX"
+        DATASET_ROOT = os.path.join("/Users/qsong/Documents/xidian/song/research/ncf-project", DATASET_NAME, SUB_DATASET)
+        # sys.exit("Raw data is stored at remote server, please start a SSH session then run this program!")
+
     elif SYSTEM.startswith("Linux"):
-        DATASET_ROOT = "/home/qsong/Documents/xidian/NCF/lisp-cache-predication/Data_Raw/auckland-8/20mins-traces"
+        RAWDATA_ROOT = os.path.join("/home/qsong/Documents/xidian/NCF/lisp-cache-predication/Data_Raw", DATASET_NAME, SUB_DATASET)
 
-    dataset_name = "auckland-8"
-    raw_data_file_name = "20-9mins.pcap"
-    data_set_path = os.path.join(DATASET_ROOT, raw_data_file_name)
-    # data_set_path in remote ubuntu server
-    # data_set_path = "/home/qsong/Documents/xidian/NCF/lisp-cache-predication/Data_Raw/auckland-8/20mins-traces/20-2min.pcap"
-    parser = DatasetParser(dataset_name, data_set_path, auto=True, read_pcap_db=None)
-    # parser = DatasetParser(dataset_name, data_set_path, auto=True, read_pcap_db="auckland-8-15-1mins.db")
+    for raw_data_file_name in sorted(os.listdir(RAWDATA_ROOT)):
+        print("The data file in process is: {}".format(raw_data_file_name))
+        data_set_path = os.path.join(RAWDATA_ROOT, raw_data_file_name)
+        # data_set_path in remote ubuntu server
+        # data_set_path = "/home/qsong/Documents/xidian/NCF/lisp-cache-predication/Data_Raw/auckland-8/20mins-traces/20-2min.pcap"
+        parser = DatasetParser(DATASET_NAME, data_set_path, auto=True, read_pcap_db=None)
+        # parser = DatasetParser(dataset_name, data_set_path, auto=True, read_pcap_db="auckland-8-15-1mins.db")
 
-    # print(parser.get_network_addr("10.0.4.125"))
+        # print(parser.get_network_addr("10.0.4.125"))
 
 
 

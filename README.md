@@ -15,6 +15,9 @@ We use Keras with Theano as the backend.
 - Keras version:  '1.0.7'
 - Theano version: '0.8.0'
 
+## Dataset Processing.
+We write a python script, `DatasetParser.py` for auckland-8 dataset processing. Run this script with python3.
+
 ## Example to run the codes.
 The instruction of commands has been clearly stated in the codes (see the  parse_args function). 
 
